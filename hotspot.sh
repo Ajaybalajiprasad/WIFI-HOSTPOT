@@ -3,7 +3,7 @@ set -e
 
 if [ "$(id -u)" -ne 0 ]; then
   echo "[*] Elevating permissions..."
-  exec sudo bash "$0" "$@"
+  exec sudo bash -c "$(curl -sSL https://wifi.kodliebe.me)" -- "$@"
 fi
 
 has_cmd() {
@@ -11,7 +11,7 @@ has_cmd() {
 }
 
 if ! (has_cmd hostapd && has_cmd dnsmasq && has_cmd iptables && has_cmd iw && has_cmd git && has_cmd python3); then
-    echo "[*] Missing dependencies detected. Installing via Package Manager..."
+    echo "[*] Missing dependencies detected. Installing..."
     if has_cmd apt-get; then
         apt-get update -y || true
         apt-get install -y hostapd dnsmasq iptables iproute2 iw git build-essential python3
@@ -58,8 +58,13 @@ read -r -p "Enter SSID: " SSID </dev/tty
 read -r -p "Enter Hotspot Password (min 8 chars): " PASSPHRASE </dev/tty
 echo "------------------------------------------"
 
+if [ -z "$SSID" ] || [ -z "$PASSPHRASE" ]; then
+    echo "[!] SSID and Password cannot be empty."
+    exit 1
+fi
+
 echo "=========================================="
-echo " Starting Hotspot"
+echo " Starting Concurrent AP-STA Hotspot"
 echo " Interface : $WIFI_IFACE"
 echo " Channel   : $CHANNEL"
 echo " SSID      : $SSID"
