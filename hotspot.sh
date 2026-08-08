@@ -59,7 +59,7 @@ read -r -p "Enter Hotspot Password (min 8 chars): " PASSPHRASE </dev/tty
 echo "------------------------------------------"
 
 echo "=========================================="
-echo " Starting Concurrent AP-STA Hotspot"
+echo " Starting Hotspot"
 echo " Interface : $WIFI_IFACE"
 echo " Channel   : $CHANNEL"
 echo " SSID      : $SSID"
