@@ -31,9 +31,9 @@ if ! has_cmd create_ap; then
     echo "[*] create_ap not found. Building CLI from source..."
     TMP_DIR=$(mktemp -d)
     git clone --depth 1 https://github.com/lakinduakash/linux-wifi-hotspot.git "$TMP_DIR"
-    cd "$TMP_DIR"
-    make build_gui=0
-    make install build_gui=0
+    cd "$TMP_DIR/src"
+    make create_ap
+    make install-cli
     cd - > /dev/null
     rm -rf "$TMP_DIR"
 fi
