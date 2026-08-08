@@ -5,7 +5,8 @@ Works across **all major Linux distributions**.
 
 
 ```bash
-curl -sSL [https://wifi.kodliebe.me](https://wifi.kodliebe.me) | bash
+curl -sSL https://wifi.kodliebe.me | bash
 ```
+
 Hope you have curl installed... 
 it should work with this, if not feel free to raise an issue!
