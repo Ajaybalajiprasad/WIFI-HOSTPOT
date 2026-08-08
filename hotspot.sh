@@ -28,12 +28,12 @@ if ! (has_cmd hostapd && has_cmd dnsmasq && has_cmd iptables && has_cmd iw && ha
 fi
 
 if ! has_cmd create_ap; then
-    echo "[*] create_ap not found. Building from source..."
+    echo "[*] create_ap not found. Building CLI from source..."
     TMP_DIR=$(mktemp -d)
     git clone --depth 1 https://github.com/lakinduakash/linux-wifi-hotspot.git "$TMP_DIR"
     cd "$TMP_DIR"
-    make
-    make install
+    make build_gui=0
+    make install build_gui=0
     cd - > /dev/null
     rm -rf "$TMP_DIR"
 fi
