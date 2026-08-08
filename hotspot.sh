@@ -47,6 +47,10 @@ fi
 
 FREQ=$(iw dev "$WIFI_IFACE" link | awk '/freq:/{print $2}')
 
+if [ -z "$FREQ" ]; then
+    FREQ=$(iw dev "$WIFI_IFACE" info | awk '/channel/{print $2}' | tr -d '()MHz,')
+fi
+
 if [ -n "$FREQ" ]; then
     CHANNEL=$(python3 -c "
 freq = int(float('$FREQ'))
