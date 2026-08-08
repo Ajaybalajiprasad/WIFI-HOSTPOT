@@ -14,13 +14,13 @@ if ! (has_cmd hostapd && has_cmd dnsmasq && has_cmd iptables && has_cmd iw && ha
     echo "[*] Missing dependencies detected. Installing..."
     if has_cmd apt-get; then
         apt-get update -y || true
-        apt-get install -y hostapd dnsmasq iptables iproute2 iw git build-essential python3
+        apt-get install -y hostapd dnsmasq iptables iproute2 iw git build-essential python3 software-properties-common curl
     elif has_cmd dnf; then
-        dnf install -y hostapd dnsmasq iptables iproute2 iw git make gcc python3
+        dnf install -y hostapd dnsmasq iptables iproute2 iw git make gcc python3 curl
     elif has_cmd pacman; then
-        pacman -Sy --needed --noconfirm hostapd dnsmasq iptables iproute2 iw git make gcc python
+        pacman -Sy --needed --noconfirm hostapd dnsmasq iptables iproute2 iw git make gcc python curl
     elif has_cmd zypper; then
-        zypper install -y hostapd dnsmasq iptables iproute2 iw git make gcc python3
+        zypper install -y hostapd dnsmasq iptables iproute2 iw git make gcc python3 curl
     else
         echo "[!] Unsupported package manager. Install dependencies manually."
         exit 1
@@ -28,14 +28,43 @@ if ! (has_cmd hostapd && has_cmd dnsmasq && has_cmd iptables && has_cmd iw && ha
 fi
 
 if ! has_cmd create_ap; then
-    echo "[*] create_ap not found. Building CLI from source..."
-    TMP_DIR=$(mktemp -d)
-    git clone --depth 1 https://github.com/lakinduakash/linux-wifi-hotspot.git "$TMP_DIR"
-    cd "$TMP_DIR/src"
-    make
-    make install-cli
-    cd - > /dev/null
-    rm -rf "$TMP_DIR"
+    echo "[*] create_ap not found. Attempting distro-native installation..."
+
+    if has_cmd add-apt-repository; then
+        echo "[*] Trying Ubuntu PPA..."
+        add-apt-repository -y ppa:lakinduakash/lwh || true
+        apt-get update -y || true
+        apt-get install -y linux-wifi-hotspot || true
+    elif has_cmd apt-get; then
+        echo "[*] Trying direct .deb release for Debian..."
+        TMP_DEB=$(mktemp --suffix=.deb)
+        if curl -sSL "https://github.com/lakinduakash/linux-wifi-hotspot/releases/latest/download/linux-wifi-hotspot.deb" -o "$TMP_DEB"; then
+            apt-get install -y "$TMP_DEB" || true
+            rm -f "$TMP_DEB"
+        fi
+    fi
+
+    if ! has_cmd create_ap && has_cmd dnf; then
+        echo "[*] Trying Fedora COPR repository..."
+        dnf copr enable -y lakinduakash/lwh || true
+        dnf install -y linux-wifi-hotspot || true
+    fi
+
+    if ! has_cmd create_ap && has_cmd pacman; then
+        echo "[*] Trying Arch Linux repository..."
+        pacman -S --needed --noconfirm linux-wifi-hotspot || true
+    fi
+
+    if ! has_cmd create_ap; then
+        echo "[*] Fallback: Compiling CLI binary from source..."
+        TMP_DIR=$(mktemp -d)
+        git clone --depth 1 https://github.com/lakinduakash/linux-wifi-hotspot.git "$TMP_DIR"
+        cd "$TMP_DIR/src"
+        make
+        make install-cli
+        cd - > /dev/null
+        rm -rf "$TMP_DIR"
+    fi
 fi
 
 WIFI_IFACE=$(iw dev | awk '$1=="Interface"{print $2}' | head -n1)
